@@ -5,6 +5,40 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val ciVersionCodeValue = providers.environmentVariable("ATHENA_VERSION_CODE").orNull
+val ciVersionCode = ciVersionCodeValue?.toIntOrNull()
+    ?: if (ciVersionCodeValue == null) {
+        1
+    } else {
+        throw GradleException("ATHENA_VERSION_CODE must be a positive integer")
+    }
+
+if (ciVersionCode < 1) {
+    throw GradleException("ATHENA_VERSION_CODE must be a positive integer")
+}
+
+val ciVersionName = providers.environmentVariable("ATHENA_VERSION_NAME").orNull ?: "1.0.0"
+
+val releaseStoreFile = providers.environmentVariable("ATHENA_KEYSTORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("ATHENA_KEYSTORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("ATHENA_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("ATHENA_KEY_PASSWORD").orNull
+val releaseSigningValues = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+)
+val hasAnyReleaseSigningValue = releaseSigningValues.any { !it.isNullOrBlank() }
+val hasCompleteReleaseSigningConfig = releaseSigningValues.all { !it.isNullOrBlank() }
+
+if (hasAnyReleaseSigningValue && !hasCompleteReleaseSigningConfig) {
+    throw GradleException(
+        "Release signing requires ATHENA_KEYSTORE_FILE, ATHENA_KEYSTORE_PASSWORD, " +
+            "ATHENA_KEY_ALIAS, and ATHENA_KEY_PASSWORD",
+    )
+}
+
 android {
     namespace = "com.athena.dates"
     compileSdk = 36
@@ -13,13 +47,27 @@ android {
         applicationId = "com.athena.dates"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = ciVersionCode
+        versionName = ciVersionName
+    }
+
+    signingConfigs {
+        if (hasCompleteReleaseSigningConfig) {
+            create("release") {
+                storeFile = file(checkNotNull(releaseStoreFile))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasCompleteReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

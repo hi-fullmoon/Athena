@@ -20,3 +20,7 @@ Athena is an Android app for keeping calendars, anniversaries, and countdowns to
 4. Run the `app` configuration.
 
 The project targets Android API 36 and uses Jetpack Compose.
+
+## Releases
+
+Pushing a `vMAJOR.MINOR.PATCH` tag runs the signed Android release pipeline and publishes the APK plus its SHA-256 checksum to GitHub Releases. See [docs/releasing.md](docs/releasing.md) for one-time signing setup and release instructions.
