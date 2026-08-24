@@ -32,6 +32,24 @@ class DateOccurrenceTest {
         assertEquals(LocalDate.of(2025, 2, 28), entry.nextOccurrence(LocalDate.of(2025, 1, 1)))
         assertTrue(entry.occursOn(LocalDate.of(2025, 2, 28)))
         assertEquals(LocalDate.of(2028, 2, 29), entry.nextOccurrence(LocalDate.of(2028, 1, 1)))
+        assertEquals(LocalDate.of(2026, 2, 28), entry.nextOccurrence(LocalDate.of(2025, 3, 1)))
+        assertFalse(entry.occursOn(LocalDate.of(2025, 3, 1)))
+    }
+
+    @Test
+    fun `annual entry never occurs before its original date`() {
+        val entry = entry(date = LocalDate.of(2030, 12, 31), repeats = true)
+
+        assertEquals(LocalDate.of(2030, 12, 31), entry.nextOccurrence(LocalDate.of(2026, 1, 1)))
+        assertFalse(entry.occursOn(LocalDate.of(2029, 12, 31)))
+    }
+
+    @Test
+    fun `year end anniversary rolls across year boundary`() {
+        val entry = entry(date = LocalDate.of(2020, 12, 31), repeats = true)
+
+        assertEquals(LocalDate.of(2026, 12, 31), entry.nextOccurrence(LocalDate.of(2026, 12, 31)))
+        assertEquals(LocalDate.of(2027, 12, 31), entry.nextOccurrence(LocalDate.of(2027, 1, 1)))
     }
 
     @Test

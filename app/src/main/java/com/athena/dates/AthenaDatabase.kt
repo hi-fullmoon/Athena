@@ -10,7 +10,10 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.Update
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "date_entries")
@@ -21,12 +24,24 @@ internal data class DateEntryEntity(
     val date: String,
     val kind: String,
     val repeatsYearly: Boolean,
+    val reminderEnabled: Boolean,
+    val reminderDaysBefore: Int,
+    val reminderTime: String,
 )
 
 @Dao
 internal interface DateEntryDao {
     @Query("SELECT * FROM date_entries ORDER BY date, id")
     fun observeAll(): Flow<List<DateEntryEntity>>
+
+    @Query("SELECT * FROM date_entries WHERE id = :id")
+    suspend fun getById(id: String): DateEntryEntity?
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entry: DateEntryEntity): Long
+
+    @Update
+    suspend fun update(entry: DateEntryEntity): Int
 
     @Upsert
     suspend fun upsert(entry: DateEntryEntity)
@@ -35,12 +50,12 @@ internal interface DateEntryDao {
     suspend fun insertLegacyEntries(entries: List<DateEntryEntity>)
 
     @Query("DELETE FROM date_entries WHERE id = :id")
-    suspend fun deleteById(id: String)
+    suspend fun deleteById(id: String): Int
 }
 
 @Database(
     entities = [DateEntryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 internal abstract class AthenaDatabase : RoomDatabase() {
@@ -55,7 +70,15 @@ internal abstract class AthenaDatabase : RoomDatabase() {
                 context.applicationContext,
                 AthenaDatabase::class.java,
                 "athena.db",
-            ).build().also { instance = it }
+            ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+        }
+
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE date_entries ADD COLUMN reminderEnabled INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE date_entries ADD COLUMN reminderDaysBefore INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE date_entries ADD COLUMN reminderTime TEXT NOT NULL DEFAULT '09:00'")
+            }
         }
     }
 }

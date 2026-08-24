@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
+import java.time.LocalTime
 
 interface DateEntryRepository {
     val entries: Flow<List<DateEntry>>
@@ -107,6 +108,9 @@ internal fun DateEntry.toEntity() = DateEntryEntity(
     date = date.toString(),
     kind = kind.storageKey,
     repeatsYearly = repeatsYearly,
+    reminderEnabled = reminderEnabled,
+    reminderDaysBefore = reminderDaysBefore,
+    reminderTime = reminderTime.toString(),
 )
 
 internal fun DateEntryEntity.toDateEntry(): DateEntry? = runCatching {
@@ -117,5 +121,8 @@ internal fun DateEntryEntity.toDateEntry(): DateEntry? = runCatching {
         date = LocalDate.parse(date),
         kind = DateKind.fromStored(kind) ?: error("Unknown kind"),
         repeatsYearly = repeatsYearly,
+        reminderEnabled = reminderEnabled,
+        reminderDaysBefore = reminderDaysBefore,
+        reminderTime = LocalTime.parse(reminderTime),
     )
 }.getOrNull()

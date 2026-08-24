@@ -58,10 +58,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -74,6 +76,9 @@ fun EditorSheet(existingEntry: DateEntry?, today: LocalDate, onDismiss: () -> Un
     var note by rememberSaveable(existingEntry?.id) { mutableStateOf(existingEntry?.note.orEmpty()) }
     var kindName by rememberSaveable(existingEntry?.id) { mutableStateOf((existingEntry?.kind ?: DateKind.Anniversary).name) }
     var repeats by rememberSaveable(existingEntry?.id) { mutableStateOf(existingEntry?.repeatsYearly ?: true) }
+    var reminderEnabled by rememberSaveable(existingEntry?.id) { mutableStateOf(existingEntry?.reminderEnabled ?: false) }
+    var reminderDays by rememberSaveable(existingEntry?.id) { mutableStateOf((existingEntry?.reminderDaysBefore ?: 0).toString()) }
+    var reminderTime by rememberSaveable(existingEntry?.id) { mutableStateOf(existingEntry?.reminderTime?.toString() ?: "09:00") }
     var targetDateIso by rememberSaveable(existingEntry?.id) { mutableStateOf((existingEntry?.date ?: today.plusDays(1)).toString()) }
     var datePickerOpen by rememberSaveable { mutableStateOf(false) }
     val kind = DateKind.entries.firstOrNull { it.name == kindName } ?: DateKind.Anniversary
@@ -105,10 +110,33 @@ fun EditorSheet(existingEntry: DateEntry?, today: LocalDate, onDismiss: () -> Un
                 Spacer(Modifier.height(10.dp))
                 RepeatSetting(repeats) { repeats = it }
             }
+            Spacer(Modifier.height(10.dp))
+            ReminderSetting(
+                enabled = reminderEnabled,
+                daysBefore = reminderDays,
+                time = reminderTime,
+                onEnabledChange = { reminderEnabled = it },
+                onDaysChange = { value -> reminderDays = value.filter(Char::isDigit).take(3) },
+                onTimeChange = { reminderTime = it.take(5) },
+            )
             Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { onSave(DateEntry(existingEntry?.id ?: UUID.randomUUID().toString(), title.trim(), note.trim(), targetDate, kind, repeats)) },
-                enabled = title.isNotBlank(),
+                onClick = {
+                    onSave(
+                        DateEntry(
+                            id = existingEntry?.id ?: UUID.randomUUID().toString(),
+                            title = title.trim(),
+                            note = note.trim(),
+                            date = targetDate,
+                            kind = kind,
+                            repeatsYearly = repeats,
+                            reminderEnabled = reminderEnabled,
+                            reminderDaysBefore = reminderDays.toIntOrNull() ?: 0,
+                            reminderTime = runCatching { LocalTime.parse(reminderTime) }.getOrDefault(LocalTime.of(9, 0)),
+                        ),
+                    )
+                },
+                enabled = title.isNotBlank() && (reminderDays.toIntOrNull() ?: 0) in 0..365 && runCatching { LocalTime.parse(reminderTime) }.isSuccess,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) { Icon(Icons.Outlined.Check, null); Spacer(Modifier.width(8.dp)); Text("保存") }
         }
@@ -160,6 +188,46 @@ private fun RepeatSetting(checked: Boolean, onCheckedChange: (Boolean) -> Unit) 
     Surface(Modifier.fillMaxWidth().toggleable(checked, role = Role.Switch, onValueChange = onCheckedChange), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f)) {
         Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.EventRepeat, null); Spacer(Modifier.width(12.dp)); Text("每年重复", Modifier.weight(1f)); Switch(checked, null)
+        }
+    }
+}
+
+@Composable
+private fun ReminderSetting(
+    enabled: Boolean,
+    daysBefore: String,
+    time: String,
+    onEnabledChange: (Boolean) -> Unit,
+    onDaysChange: (String) -> Unit,
+    onTimeChange: (String) -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f), shape = RoundedCornerShape(14.dp)) {
+        Column(Modifier.padding(15.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("本地提醒", Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                Switch(enabled, onEnabledChange)
+            }
+            if (enabled) {
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = daysBefore,
+                        onValueChange = onDaysChange,
+                        modifier = Modifier.weight(1f),
+                        label = { Text("提前天数") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                    OutlinedTextField(
+                        value = time,
+                        onValueChange = onTimeChange,
+                        modifier = Modifier.weight(1f),
+                        label = { Text("时间 HH:mm") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                }
+            }
         }
     }
 }

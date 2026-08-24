@@ -1,6 +1,7 @@
 package com.athena.dates
 
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.UUID
 
 enum class DateKind(val storageKey: String, val label: String) {
@@ -22,4 +23,11 @@ data class DateEntry(
     val date: LocalDate,
     val kind: DateKind,
     val repeatsYearly: Boolean = false,
-)
+    val reminderEnabled: Boolean = false,
+    val reminderDaysBefore: Int = 0,
+    val reminderTime: LocalTime = LocalTime.of(9, 0),
+) {
+    init {
+        require(reminderDaysBefore in 0..365) { "Reminder lead time must be between 0 and 365 days" }
+    }
+}
