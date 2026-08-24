@@ -8,11 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AthenaViewModel(
     private val repository: DateEntryRepository,
     private val settingsRepository: SettingsRepository,
+    private val reminderScheduler: ReminderScheduler,
 ) : ViewModel() {
     val entries: StateFlow<List<DateEntry>> = repository.entries.stateIn(
         scope = viewModelScope,
@@ -21,8 +23,19 @@ class AthenaViewModel(
     )
     val paletteName = MutableStateFlow(settingsRepository.loadPaletteName())
 
-    fun save(entry: DateEntry) = viewModelScope.launch { repository.upsert(entry) }
-    fun delete(id: String) = viewModelScope.launch { repository.delete(id) }
+    init {
+        viewModelScope.launch { repository.entries.first().forEach(reminderScheduler::schedule) }
+    }
+
+    fun save(entry: DateEntry) = viewModelScope.launch {
+        repository.upsert(entry)
+        reminderScheduler.schedule(entry)
+    }
+
+    fun delete(id: String) = viewModelScope.launch {
+        repository.delete(id)
+        reminderScheduler.cancel(id)
+    }
 
     fun selectPalette(name: String) {
         settingsRepository.savePaletteName(name)
@@ -35,6 +48,7 @@ class AthenaViewModel(
             override fun <T : ViewModel> create(modelClass: Class<T>): T = AthenaViewModel(
                 repository = RoomDateEntryRepository(context.applicationContext),
                 settingsRepository = SettingsRepository(context.applicationContext),
+                reminderScheduler = AndroidReminderScheduler(context.applicationContext),
             ) as T
         }
     }

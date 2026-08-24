@@ -1,5 +1,10 @@
 package com.athena.dates
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +42,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -47,6 +54,8 @@ private val LocalDateSaver = Saver<LocalDate, String>({ it.toString() }, LocalDa
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AthenaApp(viewModel: AthenaViewModel) {
+    val context = LocalContext.current
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val entries by viewModel.entries.collectAsStateWithLifecycle()
     val paletteName by viewModel.paletteName.collectAsStateWithLifecycle()
     val today = rememberCurrentDate()
@@ -97,6 +106,13 @@ fun AthenaApp(viewModel: AthenaViewModel) {
                 }
             }
             if (editorOpen) EditorSheet(editing, today, { editorOpen = false; editingId = null }) { entry ->
+                if (
+                    entry.reminderEnabled &&
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
                 viewModel.save(entry)
                 val focusDate = entry.nextOccurrence(today) ?: entry.date
                 month = YearMonth.from(focusDate); selectedDate = focusDate

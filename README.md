@@ -11,6 +11,7 @@ Athena is an Android app for keeping calendars, anniversaries, and countdowns to
 - Annual occurrences automatically roll forward, including leap-day anniversaries
 - Local SQLite persistence for user-added dates using Room, including automatic migration from the earlier SharedPreferences format
 - Five persistent in-app themes: Mist Violet, Sage, Sunrise Amber, Ocean Blue, and Rose
+- Optional local reminders with lead days and a configurable notification time
 
 ## Open and run
 
@@ -20,6 +21,8 @@ Athena is an Android app for keeping calendars, anniversaries, and countdowns to
 4. Run the `app` configuration.
 
 The project targets Android API 36 and uses Jetpack Compose.
+
+See [docs/reminders.md](docs/reminders.md) for the local-notification architecture and device verification command.
 
 ## Releases
 
