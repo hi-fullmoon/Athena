@@ -160,9 +160,10 @@ fun EditorSheet(
     val canSave = title.isNotBlank() && canonicalDate != null && lunarValid && recurrenceValid
     val focus = LocalFocusManager.current
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .2f),
-        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f),
+        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .22f),
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         unfocusedBorderColor = Color.Transparent,
+        disabledBorderColor = Color.Transparent,
     )
 
     ModalBottomSheet(
@@ -175,14 +176,27 @@ fun EditorSheet(
                 .padding(horizontal = 20.dp).padding(bottom = 24.dp),
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    if (existingEntry == null) "添加重要日子" else "编辑重要日子",
-                    Modifier.weight(1f),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                IconButton(onDismiss) { Icon(Icons.Outlined.Close, "关闭") }
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (existingEntry == null) "新建日子" else "编辑日子",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        if (existingEntry == null) "把值得记住的时刻放进日历" else "更新日期、重复与提醒",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 1.dp,
+                ) {
+                    IconButton(onDismiss) { Icon(Icons.Outlined.Close, "关闭") }
+                }
             }
+            Spacer(Modifier.height(16.dp))
             SectionTitle("类型")
             DateKindSelector(kind) {
                 kindName = it.name
@@ -401,9 +415,9 @@ private fun DateKindSelector(selected: DateKind, onSelected: (DateKind) -> Unit)
             val active = kind == selected
             Surface(
                 Modifier.weight(1f).height(52.dp).selectable(active, role = Role.RadioButton) { onSelected(kind) },
-                shape = RoundedCornerShape(14.dp),
-                color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                border = BorderStroke(1.dp, if (active) MaterialTheme.colorScheme.primary else Color.Transparent),
+                shape = RoundedCornerShape(17.dp),
+                color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = if (active) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .5f)) else null,
             ) {
                 Row(
                     Modifier.padding(8.dp),
@@ -430,8 +444,10 @@ private fun DateKindSelector(selected: DateKind, onSelected: (DateKind) -> Unit)
 @Composable
 private fun DateSelectionCard(label: String, onClick: () -> Unit) {
     Surface(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable(role = Role.Button, onClick = onClick),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .55f),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(17.dp)).clickable(role = Role.Button, onClick = onClick),
+        shape = RoundedCornerShape(17.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .42f),
+        tonalElevation = 1.dp,
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.CalendarToday, null, tint = MaterialTheme.colorScheme.primary)
@@ -537,7 +553,7 @@ private fun ReminderListEditor(
     reminders.sortedWith(compareByDescending<EntryReminder> { it.daysBefore }.thenBy { it.time }).forEach { reminder ->
         Surface(
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(15.dp),
             modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
         ) {
             Row(Modifier.padding(start = 14.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {

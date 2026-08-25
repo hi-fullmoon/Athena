@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
@@ -30,6 +31,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,10 +54,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -216,31 +222,50 @@ fun AthenaApp(
     }
 
     AthenaTheme(palette, appearance, darkTheme) {
+        val compactAddAction = LocalDensity.current.fontScale >= 1.5f
         Surface(Modifier.fillMaxSize()) {
             Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
                 topBar = {
-                    CenterAlignedTopAppBar(
-                        title = { Text(section.label, fontWeight = FontWeight.SemiBold) },
-                        actions = {
-                            IconButton({ openEditor() }) { Icon(Icons.Outlined.Add, "添加重要日子") }
-                            IconButton({ settingsOpen = true }) { Icon(Icons.Outlined.Settings, "设置") }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                    )
+                    AthenaHeader(section, today) { settingsOpen = true }
                 },
                 bottomBar = { AthenaBottomBar(section) { section = it } },
+                floatingActionButton = {
+                    if (compactAddAction) {
+                        FloatingActionButton(
+                            onClick = { openEditor() },
+                            shape = RoundedCornerShape(20.dp),
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.semantics { contentDescription = "添加重要日子" },
+                        ) { Icon(Icons.Outlined.Add, null) }
+                    } else {
+                        ExtendedFloatingActionButton(
+                            onClick = { openEditor() },
+                            shape = RoundedCornerShape(20.dp),
+                            icon = { Icon(Icons.Outlined.Add, null) },
+                            text = { Text("新建") },
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.semantics { contentDescription = "添加重要日子" },
+                        )
+                    }
+                },
             ) { padding ->
-                Column(Modifier.padding(padding)) {
+                Box(Modifier.padding(padding)) {
                     EntrySearchControls(
                         query = entryQuery,
                         availableTags = tags,
                         onQueryChange = viewModel::updateEntryQuery,
                         onReset = viewModel::resetEntryQuery,
+                        modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter),
                     )
-                    when (section) {
-                        MainSection.Calendar -> CalendarScreen(visibleEntries, today, month, selectedDate, { newMonth -> month = newMonth; selectedDate = newMonth.atDay(minOf(selectedDate.dayOfMonth, newMonth.lengthOfMonth())) }, { selectedDate = it }, ::openEditor, { deletingId = it.id }, Modifier.weight(1f))
-                        MainSection.Anniversary -> AnniversaryScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.weight(1f))
-                        MainSection.Countdown -> CountdownScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.weight(1f))
+                    Box(Modifier.fillMaxSize().padding(top = if (entryQuery.activeFilterCount > 0) 108.dp else 66.dp)) {
+                        when (section) {
+                            MainSection.Calendar -> CalendarScreen(visibleEntries, today, month, selectedDate, { newMonth -> month = newMonth; selectedDate = newMonth.atDay(minOf(selectedDate.dayOfMonth, newMonth.lengthOfMonth())) }, { selectedDate = it }, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
+                            MainSection.Anniversary -> AnniversaryScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
+                            MainSection.Countdown -> CountdownScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
+                        }
                     }
                 }
             }
