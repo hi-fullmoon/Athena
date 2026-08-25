@@ -1,4 +1,15 @@
 <resources>
     <string name="app_name">Athena</string>
+    <string name="widget_name">Athena 近期日期</string>
+    <string name="widget_description">按独立筛选显示即将到来的重要日期</string>
+    <string name="widget_heading">近期重要日期</string>
+    <string name="widget_refresh">刷新</string>
+    <string name="widget_refresh_description">刷新近期重要日期小组件</string>
+    <string name="widget_empty">暂无即将到来的日期</string>
+    <string name="shortcut_add_short">添加日期</string>
+    <string name="shortcut_add_long">添加重要日期</string>
+    <string name="shortcut_upcoming_short">即将到来</string>
+    <string name="shortcut_upcoming_long">查看即将到来的日期</string>
+    <string name="shortcut_settings_short">设置</string>
+    <string name="shortcut_settings_long">打开 Athena 设置</string>
 </resources>
-

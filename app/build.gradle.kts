@@ -5,6 +5,12 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 val ciVersionCodeValue = providers.environmentVariable("ATHENA_VERSION_CODE").orNull
 val ciVersionCode = ciVersionCodeValue?.toIntOrNull()
     ?: if (ciVersionCodeValue == null) {
@@ -107,7 +113,13 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
+    // MIT, no transitive dependencies; provides tested Chinese-lunar/leap-month conversion.
+    implementation("cn.6tail:lunar:1.7.7")
+
     val roomVersion = "2.8.4"
+    // Keep Room's schema serializer on a single ABI; Lifecycle otherwise selects core 1.7.3.
+    implementation(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.8.1"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
@@ -118,6 +130,7 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.room:room-testing:$roomVersion")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
 
 ksp {

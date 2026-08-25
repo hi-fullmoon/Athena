@@ -53,6 +53,41 @@ class DateOccurrenceTest {
     }
 
     @Test
+    fun `weekly custom interval and end date are inclusive`() {
+        val entry = entry(LocalDate.of(2026, 1, 5)).copy(
+            recurrence = RecurrenceRule(
+                frequency = RepeatFrequency.Weekly,
+                interval = 2,
+                endDate = LocalDate.of(2026, 2, 2),
+            ),
+        )
+
+        assertEquals(LocalDate.of(2026, 1, 19), entry.nextOccurrence(LocalDate.of(2026, 1, 6)))
+        assertEquals(LocalDate.of(2026, 2, 2), entry.nextOccurrence(LocalDate.of(2026, 2, 2)))
+        assertNull(entry.nextOccurrence(LocalDate.of(2026, 2, 3)))
+    }
+
+    @Test
+    fun `monthly recurrence clamps month end without drifting`() {
+        val entry = entry(LocalDate.of(2026, 1, 31)).copy(
+            recurrence = RecurrenceRule(RepeatFrequency.Monthly),
+        )
+
+        assertEquals(LocalDate.of(2026, 2, 28), entry.nextOccurrence(LocalDate.of(2026, 2, 1)))
+        assertEquals(LocalDate.of(2026, 3, 31), entry.nextOccurrence(LocalDate.of(2026, 3, 1)))
+    }
+
+    @Test
+    fun `custom yearly interval stays anchored to original year`() {
+        val entry = entry(LocalDate.of(2024, 2, 29)).copy(
+            recurrence = RecurrenceRule(RepeatFrequency.Yearly, interval = 4),
+        )
+
+        assertEquals(LocalDate.of(2028, 2, 29), entry.nextOccurrence(LocalDate.of(2025, 1, 1)))
+        assertFalse(entry.occursOn(LocalDate.of(2026, 2, 28)))
+    }
+
+    @Test
     fun `date kind accepts stable keys and legacy enum names`() {
         assertEquals(DateKind.Anniversary, DateKind.fromStored("anniversary"))
         assertEquals(DateKind.Anniversary, DateKind.fromStored("Anniversary"))
@@ -64,6 +99,6 @@ class DateOccurrenceTest {
         note = "",
         date = date,
         kind = DateKind.Anniversary,
-        repeatsYearly = repeats,
+        recurrence = if (repeats) RecurrenceRule(RepeatFrequency.Yearly) else RecurrenceRule(),
     )
 }

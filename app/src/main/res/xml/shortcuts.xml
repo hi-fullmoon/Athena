@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add_date"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_add_short"
+        android:shortcutLongLabel="@string/shortcut_add_long">
+        <intent
+            android:action="com.athena.dates.action.ADD_DATE"
+            android:targetPackage="com.athena.dates"
+            android:targetClass="com.athena.dates.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="view_upcoming"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_upcoming_short"
+        android:shortcutLongLabel="@string/shortcut_upcoming_long">
+        <intent
+            android:action="com.athena.dates.action.VIEW_UPCOMING"
+            android:targetPackage="com.athena.dates"
+            android:targetClass="com.athena.dates.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="open_settings"
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutShortLabel="@string/shortcut_settings_short"
+        android:shortcutLongLabel="@string/shortcut_settings_long">
+        <intent
+            android:action="com.athena.dates.action.OPEN_SETTINGS"
+            android:targetPackage="com.athena.dates"
+            android:targetClass="com.athena.dates.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -5,9 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,12 +21,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,10 +45,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -54,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -133,13 +141,17 @@ fun CountdownCard(entry: DateEntry, displayDate: LocalDate, today: LocalDate, on
                 Text(entry.title, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (entry.note.isNotBlank()) Text(entry.note, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
                 Text(
-                    displayDate.format(DateTimeFormatter.ofPattern(if (displayDate.year == today.year) "M 月 d 日" else "yyyy 年 M 月 d 日", Locale.CHINA)) + if (entry.repeatsYearly) " · 每年" else "",
+                    buildString {
+                        append(displayDate.format(DateTimeFormatter.ofPattern(if (displayDate.year == today.year) "M 月 d 日" else "yyyy 年 M 月 d 日", Locale.CHINA)))
+                        entry.lunarDate?.let { append(" · 农历 ").append(it.displayLabel(includeYear = false)) }
+                        if (entry.recurrence.isRepeating) append(" · ").append(entry.recurrence.displayLabel())
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
             Text(relativeDayLabel(displayDate, today), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-            EntryActions(onEdit, onDelete)
+            EntryActions(entry, displayDate, today, onEdit, onDelete)
         }
     }
 }
@@ -159,21 +171,72 @@ fun DateEntryCard(entry: DateEntry, occurrenceDate: LocalDate, today: LocalDate,
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(entry.title, fontWeight = FontWeight.Medium)
-                Text("${entry.kind.label} · ${entry.note.ifBlank { "当天记录" }}", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    buildString {
+                        append(entry.kind.label)
+                        entry.eventTime?.let { append(" · ").append(it.format(DateTimeFormatter.ofPattern("HH:mm"))) }
+                        append(" · ").append(entry.note.ifBlank { "当天记录" })
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    buildString {
+                        append("农历 ").append(occurrenceDate.lunarDisplayLabel() ?: "—")
+                        if (entry.recurrence.isRepeating) append(" · ").append(entry.recurrence.displayLabel())
+                        if (entry.reminders.isNotEmpty()) append(" · ").append(entry.reminders.size).append(" 条提醒")
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (entry.tags.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        entry.tags.take(3).forEach { tag ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    Modifier.size(10.dp).clip(CircleShape).background(Color(tag.colorArgb))
+                                        .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+                                )
+                                Spacer(Modifier.width(3.dp))
+                                Text(tag.name, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                }
             }
             Text(relativeDayLabel(occurrenceDate, today), style = MaterialTheme.typography.labelSmall)
-            EntryActions(onEdit, onDelete)
+            EntryActions(entry, occurrenceDate, today, onEdit, onDelete)
         }
     }
 }
 
 @Composable
-fun EntryActions(onEdit: () -> Unit, onDelete: () -> Unit) {
+fun EntryActions(
+    entry: DateEntry,
+    occurrenceDate: LocalDate,
+    today: LocalDate,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dark = isSystemInDarkTheme()
+    fun share(includeNote: Boolean) {
+        open = false
+        scope.launch { ShareCardManager(context).share(entry, occurrenceDate, today, includeNote, dark) }
+    }
     Box {
         IconButton(onClick = { open = true }) { Icon(Icons.Outlined.MoreVert, "更多操作") }
         DropdownMenu(open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text("编辑") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { open = false; onEdit() })
+            DropdownMenuItem(text = { Text("分享卡片") }, leadingIcon = { Icon(Icons.Outlined.Share, null) }, onClick = { share(true) })
+            if (entry.note.isNotBlank()) {
+                DropdownMenuItem(text = { Text("分享卡片（不含备注）") }, leadingIcon = { Icon(Icons.Outlined.Share, null) }, onClick = { share(false) })
+            }
             DropdownMenuItem(text = { Text("删除") }, leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null) }, onClick = { open = false; onDelete() })
         }
     }

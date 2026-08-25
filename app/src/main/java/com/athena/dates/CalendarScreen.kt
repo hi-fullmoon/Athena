@@ -55,13 +55,17 @@ fun CalendarScreen(
     modifier: Modifier = Modifier,
 ) {
     val selectedEntries = entries.filter { it.occursOn(selectedDate) }
-    val allUpcoming = entries.mapNotNull { entry -> entry.nextOccurrence(today)?.let { DateOccurrence(entry, it) } }.sortedBy { it.date }
+    val allUpcoming = entries.mapNotNull { entry -> entry.nextOccurrence(today)?.let { DateOccurrence(entry, it) } }
     val eventDates = (1..month.lengthOfMonth()).map(month::atDay).filterTo(mutableSetOf()) { date -> entries.any { it.occursOn(date) } }
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp)) {
         item { MonthCalendar(month, selectedDate, today, eventDates, onMonthChange, onDateSelected) }
         item {
             Spacer(Modifier.height(16.dp))
-            SectionTitle(if (selectedDate == today) "今天 · ${selectedDate.monthValue} 月 ${selectedDate.dayOfMonth} 日" else "${selectedDate.monthValue} 月 ${selectedDate.dayOfMonth} 日", if (selectedEntries.isEmpty()) "暂无事项" else "${selectedEntries.size} 项")
+            SectionTitle(
+                (if (selectedDate == today) "今天 · " else "") +
+                    "${selectedDate.monthValue} 月 ${selectedDate.dayOfMonth} 日 · 农历 ${selectedDate.lunarDisplayLabel() ?: "—"}",
+                if (selectedEntries.isEmpty()) "暂无事项" else "${selectedEntries.size} 项",
+            )
             Spacer(Modifier.height(10.dp))
         }
         items(selectedEntries, key = { "selected-${it.id}" }) { entry ->
@@ -121,7 +125,13 @@ private fun CalendarDay(date: LocalDate, isToday: Boolean, isSelected: Boolean, 
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(date.dayOfMonth.toString(), color = foreground, style = MaterialTheme.typography.bodySmall)
-            if (hasEvent) Box(Modifier.padding(top = 2.dp).size(4.dp).clip(CircleShape).background(if (isSelected) foreground else MaterialTheme.colorScheme.primary))
+            Text(
+                date.lunarCalendarCellLabel().orEmpty(),
+                color = foreground.copy(alpha = .8f),
+                fontSize = 8.sp,
+                maxLines = 1,
+            )
+            if (hasEvent) Box(Modifier.padding(top = 1.dp).size(3.dp).clip(CircleShape).background(if (isSelected) foreground else MaterialTheme.colorScheme.primary))
         }
     }
 }

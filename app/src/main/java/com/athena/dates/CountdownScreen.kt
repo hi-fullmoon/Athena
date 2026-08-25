@@ -18,10 +18,9 @@ fun CountdownScreen(entries: List<DateEntry>, today: LocalDate, onEdit: (DateEnt
 
 @Composable
 fun EntryListScreen(emptyMessage: String, entries: List<DateEntry>, today: LocalDate, onEdit: (DateEntry) -> Unit, onDelete: (DateEntry) -> Unit, modifier: Modifier = Modifier) {
-    val sorted = entries.sortedWith(compareBy<DateEntry> { it.nextOccurrence(today) == null }.thenBy { it.nextOccurrence(today) ?: it.date })
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp)) {
         if (entries.isEmpty()) item { EmptyState(emptyMessage) }
-        else items(sorted, key = { it.id }) { entry ->
+        else items(entries, key = { it.id }) { entry ->
             CountdownCard(entry, entry.nextOccurrence(today) ?: entry.date, today, { onEdit(entry) }, { onDelete(entry) })
             Spacer(Modifier.height(10.dp))
         }
