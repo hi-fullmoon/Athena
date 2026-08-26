@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -74,30 +75,30 @@ internal fun EntrySearchControls(
                 tonalElevation = 2.dp,
                 shadowElevation = 1.dp,
             ) {
-                Row(Modifier.padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Search, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.width(10.dp))
-                    BasicTextField(
-                        value = query.search,
-                        onValueChange = { value -> onQueryChange { it.copy(search = value) } },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                        decorationBox = { innerTextField ->
-                            Box(contentAlignment = Alignment.CenterStart) {
+                BasicTextField(
+                    value = query.search,
+                    onValueChange = { value -> onQueryChange { it.copy(search = value) } },
+                    modifier = Modifier.fillMaxSize().semantics { contentDescription = "搜索日子、备注" },
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                    decorationBox = { innerTextField ->
+                        Row(Modifier.fillMaxSize().padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Search, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.width(10.dp))
+                            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                                 if (query.search.isEmpty()) {
                                     Text("搜索日子、备注", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                                 }
                                 innerTextField()
                             }
-                        },
-                    )
-                    if (query.search.isNotEmpty()) {
-                        IconButton({ onQueryChange { it.copy(search = "") } }, Modifier.size(44.dp)) {
-                            Icon(Icons.Outlined.Close, "清除搜索", Modifier.size(18.dp))
+                            if (query.search.isNotEmpty()) {
+                                IconButton({ onQueryChange { it.copy(search = "") } }, Modifier.size(44.dp)) {
+                                    Icon(Icons.Outlined.Close, "清除搜索", Modifier.size(18.dp))
+                                }
+                            } else Spacer(Modifier.width(12.dp))
                         }
-                    } else Spacer(Modifier.width(12.dp))
-                }
+                    },
+                )
             }
             ToolbarAction(
                 description = if (query.activeFilterCount == 0) "筛选" else "筛选，已启用 ${query.activeFilterCount} 项",

@@ -15,6 +15,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -252,15 +253,14 @@ fun AthenaApp(
                     }
                 },
             ) { padding ->
-                Box(Modifier.padding(padding)) {
+                Column(Modifier.fillMaxSize().padding(padding)) {
                     EntrySearchControls(
                         query = entryQuery,
                         availableTags = tags,
                         onQueryChange = viewModel::updateEntryQuery,
                         onReset = viewModel::resetEntryQuery,
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter),
                     )
-                    Box(Modifier.fillMaxSize().padding(top = if (entryQuery.activeFilterCount > 0) 108.dp else 66.dp)) {
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
                         when (section) {
                             MainSection.Calendar -> CalendarScreen(visibleEntries, today, month, selectedDate, { newMonth -> month = newMonth; selectedDate = newMonth.atDay(minOf(selectedDate.dayOfMonth, newMonth.lengthOfMonth())) }, { selectedDate = it }, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
                             MainSection.Anniversary -> AnniversaryScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())

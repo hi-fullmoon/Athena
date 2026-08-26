@@ -2,6 +2,7 @@ package com.athena.dates
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -55,6 +56,90 @@ class DateCapabilitiesUiTest {
             "Large-text calendar target did not grow: $normalHeight -> $largeTextHeight dp",
             largeTextHeight > normalHeight,
         )
+    }
+
+    @Test
+    fun searchUsesTheWholeVisibleSurfaceAsItsTouchTarget() {
+        composeRule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = 1f)) {
+                AthenaTheme(AthenaPalette.Violet) {
+                    EntrySearchControls(
+                        query = EntryQuery(),
+                        onQueryChange = {},
+                        onReset = {},
+                    )
+                }
+            }
+        }
+
+        val search = composeRule.onNodeWithContentDescription("搜索日子、备注")
+        val searchBounds = search.fetchSemanticsNode().boundsInRoot
+        assertTrue("Search target was only ${searchBounds.height} dp high", searchBounds.height >= 48f)
+        search.performClick().assertIsFocused()
+    }
+
+    @Test
+    fun monthActionsExposeFullTouchTargets() {
+        composeRule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = 1f)) {
+                AthenaTheme(AthenaPalette.Violet) {
+                    CalendarScreen(
+                        entries = emptyList(),
+                        today = LocalDate.of(2026, 8, 25),
+                        month = YearMonth.of(2026, 7),
+                        selectedDate = LocalDate.of(2026, 7, 25),
+                        onMonthChange = {},
+                        onDateSelected = {},
+                        onEdit = {},
+                        onDelete = {},
+                    )
+                }
+            }
+        }
+
+        listOf("回到今天", "上个月", "下个月").forEach { description ->
+            val bounds = composeRule.onNodeWithContentDescription(description).fetchSemanticsNode().boundsInRoot
+            assertTrue("$description target was only ${bounds.width}×${bounds.height} dp", bounds.width >= 48f && bounds.height >= 48f)
+        }
+    }
+
+    @Test
+    fun calendarUpcomingListPreservesTheProvidedSortOrder() {
+        val today = LocalDate.of(2026, 8, 25)
+        val nameFirst = DateEntry(
+            id = "name-first",
+            title = "Alpha",
+            note = "",
+            date = today.plusDays(10),
+            kind = DateKind.Schedule,
+        )
+        val nameSecond = DateEntry(
+            id = "name-second",
+            title = "Zulu",
+            note = "",
+            date = today.plusDays(1),
+            kind = DateKind.Schedule,
+        )
+        composeRule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = 1f)) {
+                AthenaTheme(AthenaPalette.Violet) {
+                    CalendarScreen(
+                        entries = listOf(nameFirst, nameSecond),
+                        today = today,
+                        month = YearMonth.from(today),
+                        selectedDate = today,
+                        onMonthChange = {},
+                        onDateSelected = {},
+                        onEdit = {},
+                        onDelete = {},
+                    )
+                }
+            }
+        }
+
+        val firstTop = composeRule.onNodeWithText("Alpha").fetchSemanticsNode().boundsInRoot.top
+        val secondTop = composeRule.onNodeWithText("Zulu").fetchSemanticsNode().boundsInRoot.top
+        assertTrue("Calendar changed the provided order", firstTop < secondTop)
     }
 
     @Test

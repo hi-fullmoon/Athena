@@ -42,7 +42,7 @@ fun EntryListScreen(emptyMessage: String, entries: List<DateEntry>, today: Local
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(if (entries.isEmpty()) "从一个重要日子开始" else "都在这里了", style = MaterialTheme.typography.titleMedium)
-                        Text("按下次发生时间排列，近期待办一眼可见", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        Text("筛选结果集中展示，重要日子一眼可见", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }
                     Text(entries.size.toString(), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }

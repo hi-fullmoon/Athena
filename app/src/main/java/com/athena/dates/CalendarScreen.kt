@@ -1,7 +1,6 @@
 package com.athena.dates
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -60,7 +60,6 @@ fun CalendarScreen(
 ) {
     val selectedEntries = entries.filter { it.occursOn(selectedDate) }
     val allUpcoming = entries.mapNotNull { entry -> entry.nextOccurrence(today)?.let { DateOccurrence(entry, it) } }
-        .sortedBy(DateOccurrence::date)
     val eventDates = (1..month.lengthOfMonth()).map(month::atDay).filterTo(mutableSetOf()) { date -> entries.any { it.occursOn(date) } }
 
     LazyColumn(
@@ -148,19 +147,21 @@ private fun MonthCalendar(
                 }
                 if (month != YearMonth.from(today)) {
                     Surface(
-                        Modifier.clip(RoundedCornerShape(50)).clickable {
+                        onClick = {
                             onMonthChange(YearMonth.from(today))
                             onDateSelected(today)
                         },
+                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                            .semantics { contentDescription = "回到今天" },
                         color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(50),
                     ) {
-                        Text("今天", Modifier.padding(horizontal = 10.dp, vertical = 7.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                        Text("今天", Modifier.padding(horizontal = 10.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
                     }
                     Spacer(Modifier.size(4.dp))
                 }
-                IconButton({ onMonthChange(month.minusMonths(1)) }, Modifier.size(40.dp)) { Icon(Icons.Outlined.ChevronLeft, "上个月") }
-                IconButton({ onMonthChange(month.plusMonths(1)) }, Modifier.size(40.dp)) { Icon(Icons.Outlined.ChevronRight, "下个月") }
+                IconButton({ onMonthChange(month.minusMonths(1)) }) { Icon(Icons.Outlined.ChevronLeft, "上个月") }
+                IconButton({ onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Outlined.ChevronRight, "下个月") }
             }
             Spacer(Modifier.height(4.dp))
             Row(Modifier.fillMaxWidth()) {
