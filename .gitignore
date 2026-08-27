@@ -7,3 +7,4 @@ app/build/
 *.iml
 *.jks
 *.keystore
+.DS_Store
