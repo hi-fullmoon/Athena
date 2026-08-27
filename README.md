@@ -45,3 +45,7 @@ See [docs/system-integration.md](docs/system-integration.md) for runtime permiss
 ## Releases
 
 Pushing a `vMAJOR.MINOR.PATCH` tag runs the signed Android release pipeline and publishes the APK plus its SHA-256 checksum to GitHub Releases. See [docs/releasing.md](docs/releasing.md) for one-time signing setup and release instructions.
+
+## License
+
+Athena is available under the [MIT License](LICENSE).
