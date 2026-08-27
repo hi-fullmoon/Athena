@@ -58,11 +58,11 @@ internal fun renderShareCard(
 ): Bitmap {
     val bitmap = createBitmap(CARD_WIDTH, CARD_HEIGHT, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-    val background = if (dark) Color.rgb(28, 27, 32) else Color.rgb(249, 247, 255)
-    val surface = if (dark) Color.rgb(48, 46, 55) else Color.WHITE
-    val primary = if (dark) Color.rgb(207, 189, 255) else Color.rgb(92, 70, 176)
-    val onSurface = if (dark) Color.rgb(242, 238, 247) else Color.rgb(34, 31, 40)
-    val secondary = if (dark) Color.rgb(202, 196, 208) else Color.rgb(92, 87, 99)
+    val background = if (dark) Color.rgb(17, 18, 16) else Color.rgb(247, 246, 242)
+    val surface = if (dark) Color.rgb(24, 26, 23) else Color.rgb(255, 254, 251)
+    val primary = if (dark) Color.rgb(203, 195, 240) else Color.rgb(88, 74, 158)
+    val onSurface = if (dark) Color.rgb(240, 240, 234) else Color.rgb(29, 29, 27)
+    val secondary = if (dark) Color.rgb(197, 196, 188) else Color.rgb(101, 99, 94)
     canvas.drawColor(background)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     paint.color = surface
@@ -72,7 +72,7 @@ internal fun renderShareCard(
     paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     paint.textSize = 42f
     paint.color = primary
-    canvas.drawText("ATHENA · 重要日期", 120f, y, paint)
+    canvas.drawText("ATHENA · 重要日子", 120f, y, paint)
     y += 112f
 
     paint.textSize = 74f

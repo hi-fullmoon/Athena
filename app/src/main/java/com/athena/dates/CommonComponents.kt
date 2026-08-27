@@ -4,29 +4,29 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -34,13 +34,11 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,12 +54,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,6 +74,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import kotlin.math.absoluteValue
 
 enum class MainSection(val label: String, val icon: ImageVector) {
     Calendar("日历", Icons.Outlined.CalendarToday),
@@ -83,38 +84,30 @@ enum class MainSection(val label: String, val icon: ImageVector) {
 
 @Composable
 fun AthenaHeader(section: MainSection, today: LocalDate, onSettings: () -> Unit) {
-    Box(
-        Modifier.fillMaxWidth().background(
-            Brush.linearGradient(
-                listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.background),
-            ),
-        ),
+    Row(
+        Modifier.fillMaxWidth().statusBarsPadding()
+            .padding(start = 20.dp, top = 8.dp, end = 16.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(start = 20.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(section.label, style = MaterialTheme.typography.headlineMedium)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(5.dp))
-                    Text(
-                        "ATHENA · ${today.format(DateTimeFormatter.ofPattern("M 月 d 日 EEEE", Locale.CHINA))}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = .5.sp,
-                    )
-                }
+        Column(Modifier.weight(1f)) {
+            Text(section.label, style = MaterialTheme.typography.headlineMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "ATHENA",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp,
+                )
+                Text(
+                    "  ·  ${today.format(DateTimeFormatter.ofPattern("M 月 d 日 EEEE", Locale.CHINA))}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surface.copy(alpha = .72f),
-                tonalElevation = 2.dp,
-            ) {
-                IconButton(onSettings) { Icon(Icons.Outlined.Settings, "设置") }
-            }
+        }
+        IconButton(onClick = onSettings, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Outlined.Settings, "设置", Modifier.size(21.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -149,43 +142,43 @@ fun rememberCurrentDate(): LocalDate {
 
 @Composable
 fun AthenaBottomBar(selected: MainSection, onSelected: (MainSection) -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        tonalElevation = 3.dp,
-        shadowElevation = 10.dp,
-    ) {
-        Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().selectableGroup().padding(horizontal = 12.dp, vertical = 7.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-        ) {
-            MainSection.entries.forEach { section ->
-                val active = section == selected
-                Column(
-                    Modifier.weight(1f).selectable(
-                        selected = active,
-                        role = Role.Tab,
-                        onClick = { onSelected(section) },
-                    ).padding(vertical = 3.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Surface(
-                        color = if (active) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                        shape = RoundedCornerShape(50),
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp, shadowElevation = 0.dp) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                Modifier.fillMaxWidth().navigationBarsPadding().selectableGroup()
+                    .padding(horizontal = 16.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+                MainSection.entries.forEach { section ->
+                    val active = section == selected
+                    Column(
+                        Modifier.weight(1f).heightIn(min = 54.dp).selectable(
+                            selected = active,
+                            role = Role.Tab,
+                            onClick = { onSelected(section) },
+                        ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
                     ) {
-                        Icon(
-                            section.icon,
-                            null,
-                            Modifier.padding(horizontal = 18.dp, vertical = 5.dp).size(22.dp),
-                            tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        Surface(
+                            color = if (active) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                            shape = RoundedCornerShape(10.dp),
+                        ) {
+                            Icon(
+                                section.icon,
+                                null,
+                                Modifier.padding(horizontal = 10.dp, vertical = 4.dp).size(21.dp),
+                                tint = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Text(
+                            section.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
                         )
                     }
-                    Text(
-                        section.label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                    )
                 }
             }
         }
@@ -196,13 +189,17 @@ fun AthenaBottomBar(selected: MainSection, onSelected: (MainSection) -> Unit) {
 fun CountdownCard(entry: DateEntry, displayDate: LocalDate, today: LocalDate, onEdit: () -> Unit, onDelete: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(Modifier.padding(start = 16.dp, top = 14.dp, end = 4.dp, bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(3.dp, 48.dp).clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.primary))
+        Row(
+            Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RelativeDayPanel(displayDate, today)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(entry.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -214,17 +211,18 @@ fun CountdownCard(entry: DateEntry, displayDate: LocalDate, today: LocalDate, on
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                if (entry.note.isNotBlank()) Text(entry.note, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-            Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(12.dp)) {
-                Text(
-                    relativeDayLabel(displayDate, today),
-                    Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                if (entry.note.isNotBlank()) {
+                    Text(
+                        entry.note,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             EntryActions(entry, displayDate, today, onEdit, onDelete)
         }
@@ -232,63 +230,146 @@ fun CountdownCard(entry: DateEntry, displayDate: LocalDate, today: LocalDate, on
 }
 
 @Composable
-fun DateEntryCard(entry: DateEntry, occurrenceDate: LocalDate, today: LocalDate, onEdit: () -> Unit, onDelete: () -> Unit) {
+private fun RelativeDayPanel(date: LocalDate, today: LocalDate) {
+    val days = ChronoUnit.DAYS.between(today, date)
+    Surface(
+        modifier = Modifier.widthIn(min = 58.dp).heightIn(min = 62.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+    ) {
+        Column(
+            Modifier.padding(horizontal = 4.dp, vertical = 7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            if (days == 0L) {
+                Text("今天", color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.titleMedium)
+            } else {
+                Text(
+                    days.absoluteValue.toString(),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                )
+                Text(if (days > 0) "天后" else "天前", color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun DateEntryCard(
+    entry: DateEntry,
+    occurrenceDate: LocalDate,
+    today: LocalDate,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    showDateContext: Boolean = true,
+) {
+    val largeText = LocalDensity.current.fontScale >= 1.5f
     Surface(
         Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        shadowElevation = 1.dp,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(
-                Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primaryContainer),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(occurrenceDate.dayOfMonth.toString(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Text(occurrenceDate.format(DateTimeFormatter.ofPattern("M月", Locale.CHINA)), fontSize = 10.sp, color = MaterialTheme.colorScheme.primary)
+        Row(
+            Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (showDateContext) {
+                Column(
+                    Modifier.width(48.dp).heightIn(min = 56.dp).clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer).padding(vertical = 6.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        occurrenceDate.dayOfMonth.toString(),
+                        fontSize = 20.sp,
+                        lineHeight = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        occurrenceDate.format(DateTimeFormatter.ofPattern("M 月", Locale.CHINA)),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
             }
-            Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(entry.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(entry.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     buildString {
+                        if (showDateContext && largeText) {
+                            append(compactRelativeDayLabel(occurrenceDate, today))
+                            append(" · ")
+                            append(
+                                occurrenceDate.format(
+                                    DateTimeFormatter.ofPattern(
+                                        if (occurrenceDate.year == today.year) "M 月 d 日" else "yyyy 年 M 月 d 日",
+                                        Locale.CHINA,
+                                    ),
+                                ),
+                            )
+                            append(" · ")
+                        }
                         append(entry.kind.label)
                         entry.eventTime?.let { append(" · ").append(it.format(DateTimeFormatter.ofPattern("HH:mm"))) }
-                        append(" · ").append(entry.note.ifBlank { "当天记录" })
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    buildString {
-                        append("农历 ").append(occurrenceDate.lunarDisplayLabel() ?: "—")
                         if (entry.recurrence.isRepeating) append(" · ").append(entry.recurrence.displayLabel())
                         if (entry.reminders.isNotEmpty()) append(" · ").append(entry.reminders.size).append(" 条提醒")
                     },
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (entry.tags.isNotEmpty()) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        entry.tags.take(3).forEach { tag ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    Modifier.size(10.dp).clip(CircleShape).background(Color(tag.colorArgb))
-                                        .border(1.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
-                                )
-                                Spacer(Modifier.width(3.dp))
-                                Text(tag.name, style = MaterialTheme.typography.labelSmall)
-                            }
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        buildString {
+                            append("农历 ").append(occurrenceDate.lunarDisplayLabel() ?: "—")
+                            if (entry.note.isNotBlank()) append(" · ").append(entry.note)
+                        },
+                        Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (entry.tags.isNotEmpty()) {
+                        val tag = entry.tags.first()
+                        Spacer(Modifier.width(6.dp))
+                        Box(
+                            Modifier.size(8.dp).clip(CircleShape).background(Color(tag.colorArgb))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            if (entry.tags.size == 1) tag.name else "${tag.name} +${entry.tags.size - 1}",
+                            Modifier.widthIn(max = 72.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
-            Text(relativeDayLabel(occurrenceDate, today), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            if (showDateContext && !largeText) {
+                Text(
+                    compactRelativeDayLabel(occurrenceDate, today),
+                    Modifier.widthIn(max = 68.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                )
+            }
             EntryActions(entry, occurrenceDate, today, onEdit, onDelete)
         }
     }
@@ -305,13 +386,15 @@ fun EntryActions(
     var open by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dark = isSystemInDarkTheme()
+    val dark = MaterialTheme.colorScheme.background.luminance() < .5f
     fun share(includeNote: Boolean) {
         open = false
         scope.launch { ShareCardManager(context).share(entry, occurrenceDate, today, includeNote, dark) }
     }
     Box {
-        IconButton(onClick = { open = true }) { Icon(Icons.Outlined.MoreVert, "更多操作") }
+        IconButton(onClick = { open = true }) {
+            Icon(Icons.Outlined.MoreVert, "更多操作", Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         DropdownMenu(open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text("编辑") }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { open = false; onEdit() })
             DropdownMenuItem(text = { Text("分享卡片") }, leadingIcon = { Icon(Icons.Outlined.Share, null) }, onClick = { share(true) })
@@ -324,17 +407,32 @@ fun EntryActions(
 }
 
 @Composable
-fun EmptyState(message: String) {
-    Surface(
-        Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .55f),
-    ) {
-        Column(Modifier.padding(horizontal = 24.dp, vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Outlined.CalendarToday, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(10.dp))
-            Text(message, style = MaterialTheme.typography.titleMedium)
-            Text("点击右下角“新建”开始记录", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+fun EmptyState(
+    message: String,
+    detail: String = "轻触右下角的加号，记下第一个重要日子",
+) {
+    Surface(Modifier.fillMaxWidth(), color = Color.Transparent) {
+        Column(
+            Modifier.padding(horizontal = 24.dp, vertical = 36.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+            Icon(
+                    Icons.Outlined.CalendarToday,
+                    null,
+                    Modifier.padding(12.dp).size(24.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            Text(message, style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                detail,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -344,6 +442,15 @@ fun relativeDayLabel(date: LocalDate, reference: LocalDate): String {
     return when {
         days == 0L -> "今天"
         days > 0L -> "$days 天后"
-        else -> "已过去 ${-days} 天"
+        else -> "${-days} 天前"
+    }
+}
+
+private fun compactRelativeDayLabel(date: LocalDate, reference: LocalDate): String {
+    val days = ChronoUnit.DAYS.between(reference, date)
+    return when {
+        days == 0L -> "今天"
+        days > 0L -> "${days}天后"
+        else -> "${-days}天前"
     }
 }

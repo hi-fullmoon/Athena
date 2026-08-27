@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -160,10 +162,10 @@ fun EditorSheet(
     val canSave = title.isNotBlank() && canonicalDate != null && lunarValid && recurrenceValid
     val focus = LocalFocusManager.current
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .22f),
-        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        unfocusedBorderColor = Color.Transparent,
-        disabledBorderColor = Color.Transparent,
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
     )
 
     ModalBottomSheet(
@@ -189,9 +191,10 @@ fun EditorSheet(
                     )
                 }
                 Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    tonalElevation = 1.dp,
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 0.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 ) {
                     IconButton(onDismiss) { Icon(Icons.Outlined.Close, "关闭") }
                 }
@@ -221,7 +224,10 @@ fun EditorSheet(
             )
             Spacer(Modifier.height(18.dp))
             SectionTitle("日期")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 DateCalendarSystem.entries.forEach { system ->
                     FilterChip(
                         selected = calendarSystem == system,
@@ -405,49 +411,66 @@ fun EditorSheet(
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+    Text(text, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(bottom = 8.dp))
 }
 
 @Composable
 private fun DateKindSelector(selected: DateKind, onSelected: (DateKind) -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        DateKind.entries.forEach { kind ->
-            val active = kind == selected
-            Surface(
-                Modifier.weight(1f).height(52.dp).selectable(active, role = Role.RadioButton) { onSelected(kind) },
-                shape = RoundedCornerShape(17.dp),
-                color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = if (active) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .5f)) else null,
-            ) {
-                Row(
-                    Modifier.padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        when (kind) {
-                            DateKind.Anniversary -> Icons.Outlined.FavoriteBorder
-                            DateKind.Countdown -> Icons.Outlined.Timer
-                            DateKind.Schedule -> Icons.Outlined.CalendarToday
-                        },
-                        null,
-                        Modifier.size(20.dp),
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(kind.label, style = MaterialTheme.typography.labelMedium)
-                }
+    if (LocalDensity.current.fontScale >= 1.5f) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            DateKind.entries.forEach { kind ->
+                DateKindOption(kind, kind == selected, Modifier.fillMaxWidth(), onSelected)
+            }
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DateKind.entries.forEach { kind ->
+                DateKindOption(kind, kind == selected, Modifier.weight(1f), onSelected)
             }
         }
     }
 }
 
 @Composable
-private fun DateSelectionCard(label: String, onClick: () -> Unit) {
+private fun DateKindOption(kind: DateKind, active: Boolean, modifier: Modifier, onSelected: (DateKind) -> Unit) {
     Surface(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(17.dp)).clickable(role = Role.Button, onClick = onClick),
-        shape = RoundedCornerShape(17.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .42f),
-        tonalElevation = 1.dp,
+        modifier.heightIn(min = 52.dp).selectable(active, role = Role.RadioButton) { onSelected(kind) },
+        shape = RoundedCornerShape(12.dp),
+        color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(
+            1.dp,
+            if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+        ),
+    ) {
+        Row(
+            Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Icon(
+                when (kind) {
+                    DateKind.Anniversary -> Icons.Outlined.FavoriteBorder
+                    DateKind.Countdown -> Icons.Outlined.Timer
+                    DateKind.Schedule -> Icons.Outlined.CalendarToday
+                },
+                null,
+                Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(kind.label, style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+@Composable
+private fun DateSelectionCard(label: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    Surface(
+        Modifier.fillMaxWidth().clip(shape).clickable(role = Role.Button, onClick = onClick),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        tonalElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.CalendarToday, null, tint = MaterialTheme.colorScheme.primary)
@@ -470,15 +493,28 @@ private fun LunarDateEditor(
 ) {
     val year = yearText.toIntOrNull()
     val months = year?.takeIf { it in LUNAR_SUPPORTED_YEARS }?.let(::lunarMonthsInYear).orEmpty()
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            yearText, onYear, Modifier.weight(1f), label = { Text("农历年") }, singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
-        OutlinedTextField(
-            dayText, onDay, Modifier.weight(1f), label = { Text("日（1–30）") }, singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
+    if (LocalDensity.current.fontScale >= 1.5f) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                yearText, onYear, Modifier.fillMaxWidth(), label = { Text("农历年") }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            OutlinedTextField(
+                dayText, onDay, Modifier.fillMaxWidth(), label = { Text("日（1–30）") }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                yearText, onYear, Modifier.weight(1f), label = { Text("农历年") }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            OutlinedTextField(
+                dayText, onDay, Modifier.weight(1f), label = { Text("日（1–30）") }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        }
     }
     Spacer(Modifier.height(8.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -508,7 +544,10 @@ private fun RecurrenceEditor(
     } else {
         listOf(RepeatFrequency.None, RepeatFrequency.Weekly, RepeatFrequency.Monthly, RepeatFrequency.Yearly)
     }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         choices.forEach { choice ->
             FilterChip(
                 selected = choice == frequency,
@@ -552,9 +591,10 @@ private fun ReminderListEditor(
     if (reminders.isEmpty()) Text("未设置提醒", color = MaterialTheme.colorScheme.onSurfaceVariant)
     reminders.sortedWith(compareByDescending<EntryReminder> { it.daysBefore }.thenBy { it.time }).forEach { reminder ->
         Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .5f),
-            shape = RoundedCornerShape(15.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
             Row(Modifier.padding(start = 14.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Notifications, null)
@@ -623,7 +663,10 @@ private fun TagEditor(
 ) {
     SectionTitle("标签与颜色")
     if (tags.isNotEmpty()) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             tags.forEach { tag ->
                 FilterChip(
                     selected = tag.id in selectedIds,
@@ -650,7 +693,10 @@ private fun TagEditor(
         )
         IconButton(onCreate, enabled = newName.isNotBlank()) { Icon(Icons.Outlined.Add, "创建并选择标签") }
     }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         DEFAULT_TAG_COLORS.forEachIndexed { index, color ->
             FilterChip(
                 selected = colorIndex == index,

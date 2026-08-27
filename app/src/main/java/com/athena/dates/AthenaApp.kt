@@ -10,7 +10,6 @@ import android.provider.Settings
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
@@ -18,32 +17,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -54,14 +41,11 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -141,6 +125,7 @@ fun AthenaApp(
     val visibleEntries = remember(entries, today, entryQuery) {
         filterAndSortEntries(entries, today, entryQuery)
     }
+    val isFiltering = entryQuery.search.isNotBlank() || entryQuery.activeFilterCount > 0
     val archivedEntries = remember(entries) { entries.filter(DateEntry::isArchived) }
     var section by rememberSaveable(stateSaver = MainSectionSaver) { mutableStateOf(MainSection.Calendar) }
     var month by rememberSaveable(stateSaver = YearMonthSaver) { mutableStateOf(YearMonth.from(today)) }
@@ -223,7 +208,6 @@ fun AthenaApp(
     }
 
     AthenaTheme(palette, appearance, darkTheme) {
-        val compactAddAction = LocalDensity.current.fontScale >= 1.5f
         Surface(Modifier.fillMaxSize()) {
             Scaffold(
                 containerColor = MaterialTheme.colorScheme.background,
@@ -232,25 +216,13 @@ fun AthenaApp(
                 },
                 bottomBar = { AthenaBottomBar(section) { section = it } },
                 floatingActionButton = {
-                    if (compactAddAction) {
-                        FloatingActionButton(
-                            onClick = { openEditor() },
-                            shape = RoundedCornerShape(20.dp),
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.semantics { contentDescription = "添加重要日子" },
-                        ) { Icon(Icons.Outlined.Add, null) }
-                    } else {
-                        ExtendedFloatingActionButton(
-                            onClick = { openEditor() },
-                            shape = RoundedCornerShape(20.dp),
-                            icon = { Icon(Icons.Outlined.Add, null) },
-                            text = { Text("新建") },
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.semantics { contentDescription = "添加重要日子" },
-                        )
-                    }
+                    FloatingActionButton(
+                        onClick = { openEditor() },
+                        shape = RoundedCornerShape(16.dp),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(56.dp).semantics { contentDescription = "添加重要日子" },
+                    ) { Icon(Icons.Outlined.Add, null, Modifier.size(24.dp)) }
                 },
             ) { padding ->
                 Column(Modifier.fillMaxSize().padding(padding)) {
@@ -262,9 +234,37 @@ fun AthenaApp(
                     )
                     Box(Modifier.fillMaxWidth().weight(1f)) {
                         when (section) {
-                            MainSection.Calendar -> CalendarScreen(visibleEntries, today, month, selectedDate, { newMonth -> month = newMonth; selectedDate = newMonth.atDay(minOf(selectedDate.dayOfMonth, newMonth.lengthOfMonth())) }, { selectedDate = it }, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
-                            MainSection.Anniversary -> AnniversaryScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
-                            MainSection.Countdown -> CountdownScreen(visibleEntries, today, ::openEditor, { deletingId = it.id }, Modifier.fillMaxSize())
+                            MainSection.Calendar -> CalendarScreen(
+                                entries = visibleEntries,
+                                today = today,
+                                month = month,
+                                selectedDate = selectedDate,
+                                onMonthChange = { newMonth ->
+                                    month = newMonth
+                                    selectedDate = newMonth.atDay(minOf(selectedDate.dayOfMonth, newMonth.lengthOfMonth()))
+                                },
+                                onDateSelected = { selectedDate = it },
+                                onEdit = ::openEditor,
+                                onDelete = { deletingId = it.id },
+                                isFiltering = isFiltering,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                            MainSection.Anniversary -> AnniversaryScreen(
+                                entries = visibleEntries,
+                                today = today,
+                                onEdit = ::openEditor,
+                                onDelete = { deletingId = it.id },
+                                isFiltering = isFiltering,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                            MainSection.Countdown -> CountdownScreen(
+                                entries = visibleEntries,
+                                today = today,
+                                onEdit = ::openEditor,
+                                onDelete = { deletingId = it.id },
+                                isFiltering = isFiltering,
+                                modifier = Modifier.fillMaxSize(),
+                            )
                         }
                     }
                 }
