@@ -33,7 +33,7 @@ class SearchRotationUiTest {
         composeRule.onNodeWithContentDescription("设置").performClick()
 
         composeRule.onNodeWithText("外观").assertIsDisplayed()
-        listOf("提醒状态", "过期倒数日归档", "数据管理", "桌面小组件").forEach { destination ->
+        listOf("提醒状态", "已归档的倒数日", "数据管理", "桌面小组件").forEach { destination ->
             composeRule.onNodeWithText(destination).assertExists()
         }
     }
