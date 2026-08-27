@@ -2,6 +2,8 @@
 
 Athena is an Android app for keeping calendars, anniversaries, and countdowns together.
 
+中文项目、架构与模块说明见 [docs/repository-overview.zh-CN.md](docs/repository-overview.zh-CN.md)。
+
 ## Included
 
 - Month calendar with important-day markers and date selection
