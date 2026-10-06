@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -86,7 +85,7 @@ enum class MainSection(val label: String, val icon: ImageVector) {
 fun AthenaHeader(section: MainSection, today: LocalDate, onSettings: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = 20.dp, top = 8.dp, end = 16.dp, bottom = 6.dp),
+            .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
@@ -106,7 +105,8 @@ fun AthenaHeader(section: MainSection, today: LocalDate, onSettings: () -> Unit)
                 )
             }
         }
-        IconButton(onClick = onSettings, modifier = Modifier.size(48.dp)) {
+        IconButton(onClick = onSettings, modifier = Modifier.size(48.dp).clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)) {
             Icon(Icons.Outlined.Settings, "设置", Modifier.size(21.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -147,13 +147,14 @@ fun AthenaBottomBar(selected: MainSection, onSelected: (MainSection) -> Unit) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(
                 Modifier.fillMaxWidth().navigationBarsPadding().selectableGroup()
-                    .padding(horizontal = 16.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 MainSection.entries.forEach { section ->
                     val active = section == selected
                     Column(
-                        Modifier.weight(1f).heightIn(min = 54.dp).selectable(
+                        Modifier.weight(1f).heightIn(min = 58.dp).clip(AthenaShapes.inner)
+                            .background(if (active) MaterialTheme.colorScheme.primaryContainer else Color.Transparent).selectable(
                             selected = active,
                             role = Role.Tab,
                             onClick = { onSelected(section) },
@@ -163,7 +164,7 @@ fun AthenaBottomBar(selected: MainSection, onSelected: (MainSection) -> Unit) {
                     ) {
                         Surface(
                             color = if (active) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                            shape = RoundedCornerShape(10.dp),
+                            shape = AthenaShapes.inner,
                         ) {
                             Icon(
                                 section.icon,
@@ -189,14 +190,14 @@ fun AthenaBottomBar(selected: MainSection, onSelected: (MainSection) -> Unit) {
 fun CountdownCard(entry: DateEntry, displayDate: LocalDate, today: LocalDate, onEdit: () -> Unit, onDelete: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = AthenaShapes.card,
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
-            Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+            Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             RelativeDayPanel(displayDate, today)
@@ -234,7 +235,7 @@ private fun RelativeDayPanel(date: LocalDate, today: LocalDate) {
     val days = ChronoUnit.DAYS.between(today, date)
     Surface(
         modifier = Modifier.widthIn(min = 58.dp).heightIn(min = 62.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = AthenaShapes.inner,
         color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Column(
@@ -269,19 +270,19 @@ fun DateEntryCard(
     val largeText = LocalDensity.current.fontScale >= 1.5f
     Surface(
         Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = AthenaShapes.card,
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
-            Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+            Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showDateContext) {
                 Column(
-                    Modifier.width(48.dp).heightIn(min = 56.dp).clip(RoundedCornerShape(12.dp))
+                    Modifier.width(48.dp).heightIn(min = 56.dp).clip(AthenaShapes.inner)
                         .background(MaterialTheme.colorScheme.primaryContainer).padding(vertical = 6.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -416,8 +417,8 @@ fun EmptyState(
             Modifier.padding(horizontal = 24.dp, vertical = 36.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-            Icon(
+            Surface(shape = AthenaShapes.inner, color = MaterialTheme.colorScheme.primaryContainer) {
+                Icon(
                     Icons.Outlined.CalendarToday,
                     null,
                     Modifier.padding(12.dp).size(24.dp),

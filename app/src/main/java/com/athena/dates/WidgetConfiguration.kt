@@ -102,7 +102,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
             return
         }
         setContent {
-            AthenaTheme(AthenaPalette.Violet, AppearanceSettings(), darkTheme = androidx.compose.foundation.isSystemInDarkTheme()) {
+            AthenaTheme(AthenaPalette.Sage, AppearanceSettings(), darkTheme = androidx.compose.foundation.isSystemInDarkTheme()) {
                 var tags by remember { mutableStateOf<List<DateTag>>(emptyList()) }
                 LaunchedEffect(Unit) { tags = RoomDateEntryRepository(applicationContext).snapshotData().tags }
                 WidgetConfigurationScreen(

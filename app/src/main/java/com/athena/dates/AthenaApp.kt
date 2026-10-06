@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -115,7 +114,7 @@ fun AthenaApp(
     val calendarExportState by viewModel.calendarExportState.collectAsStateWithLifecycle()
     val contactsImportState by viewModel.contactsImportState.collectAsStateWithLifecycle()
     val today = rememberCurrentDate()
-    val palette = AthenaPalette.entries.firstOrNull { it.name == appearance.paletteName } ?: AthenaPalette.Violet
+    val palette = AthenaPalette.entries.firstOrNull { it.name == appearance.paletteName } ?: AthenaPalette.Sage
     val systemDark = isSystemInDarkTheme()
     val darkTheme = when (appearance.themeMode) {
         ThemeMode.System -> systemDark
@@ -218,7 +217,7 @@ fun AthenaApp(
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = { openEditor() },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = AthenaShapes.inner,
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(56.dp).semantics { contentDescription = "添加重要日子" },

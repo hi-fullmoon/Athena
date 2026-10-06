@@ -70,11 +70,11 @@ internal fun EntrySearchControls(
     var sortOpen by remember { mutableStateOf(false) }
     val toolbarHeight = maxOf(52f, 24f * LocalDensity.current.fontScale + 24f).dp
 
-    Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+    Column(modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp)) {
         Surface(
             Modifier.fillMaxWidth().height(toolbarHeight),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            shape = RoundedCornerShape(16.dp),
+            shape = AthenaShapes.inner,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),

@@ -52,7 +52,7 @@ fun EntryListScreen(
     val title = if (kind == DateKind.Anniversary) "全部纪念日" else "进行中的倒数日"
     LazyColumn(
         modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 104.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 104.dp),
     ) {
         if (entries.isNotEmpty()) {
             item {
@@ -80,7 +80,7 @@ fun EntryListScreen(
             }
         } else items(entries, key = { it.id }) { entry ->
             CountdownCard(entry, entry.nextOccurrence(today) ?: entry.date, today, { onEdit(entry) }, { onDelete(entry) })
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(15.dp))
         }
     }
 }

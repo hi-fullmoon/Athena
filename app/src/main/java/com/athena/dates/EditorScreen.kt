@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -181,8 +180,7 @@ fun EditorSheet(
                 Column(Modifier.weight(1f)) {
                     Text(
                         if (existingEntry == null) "新建日子" else "编辑日子",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
                         if (existingEntry == null) "把值得记住的时刻放进日历" else "更新日期、重复与提醒",
@@ -191,7 +189,7 @@ fun EditorSheet(
                     )
                 }
                 Surface(
-                    shape = RoundedCornerShape(14.dp),
+                    shape = AthenaShapes.inner,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 0.dp,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -435,7 +433,7 @@ private fun DateKindSelector(selected: DateKind, onSelected: (DateKind) -> Unit)
 private fun DateKindOption(kind: DateKind, active: Boolean, modifier: Modifier, onSelected: (DateKind) -> Unit) {
     Surface(
         modifier.heightIn(min = 52.dp).selectable(active, role = Role.RadioButton) { onSelected(kind) },
-        shape = RoundedCornerShape(12.dp),
+        shape = AthenaShapes.inner,
         color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest,
         border = BorderStroke(
             1.dp,
@@ -464,7 +462,7 @@ private fun DateKindOption(kind: DateKind, active: Boolean, modifier: Modifier, 
 
 @Composable
 private fun DateSelectionCard(label: String, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = AthenaShapes.inner
     Surface(
         Modifier.fillMaxWidth().clip(shape).clickable(role = Role.Button, onClick = onClick),
         shape = shape,
@@ -592,7 +590,7 @@ private fun ReminderListEditor(
     reminders.sortedWith(compareByDescending<EntryReminder> { it.daysBefore }.thenBy { it.time }).forEach { reminder ->
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            shape = RoundedCornerShape(12.dp),
+            shape = AthenaShapes.inner,
             modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {

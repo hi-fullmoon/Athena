@@ -12,7 +12,7 @@ Athena is an Android app for keeping calendars, anniversaries, and countdowns to
 - Edit and delete existing dates from any list or calendar card
 - Weekly, monthly, yearly, and custom-interval recurrence with an optional end date
 - Local SQLite persistence for user-added dates using Room, including automatic migration from the earlier SharedPreferences format
-- Five persistent in-app themes: Mist Violet, Sage, Sunrise Amber, Ocean Blue, and Rose
+- Five persistent in-app themes: Mist Teal, Sage, Sunrise Amber, Ocean Blue, and Rose
 - Multiple per-date local reminders with independent 0–365 day lead times and times
 - Reminder recovery after reboot and clock/time-zone changes, with persistent duplicate suppression
 - Versioned JSON full backup and transactional restore through Android's system document picker

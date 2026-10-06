@@ -68,7 +68,7 @@ fun CalendarScreen(
 
     LazyColumn(
         modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 104.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 104.dp),
     ) {
         item {
             MonthCalendar(month, selectedDate, today, eventDates, isFiltering, onMonthChange, onDateSelected)
@@ -166,13 +166,13 @@ private fun MonthCalendar(
         }
         Spacer(Modifier.height(6.dp))
         Surface(
-            shape = RoundedCornerShape(20.dp),
+            shape = AthenaShapes.card,
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
-            Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 16.dp)) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
                     listOf("日", "一", "二", "三", "四", "五", "六").forEachIndexed { index, label ->
                         Text(

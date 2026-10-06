@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -79,7 +78,7 @@ internal fun SettingsSheet(
             SettingsHeading("外观")
             Surface(
                 Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = AthenaShapes.card,
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 tonalElevation = 0.dp,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -134,7 +133,7 @@ internal fun SettingsSheet(
                         AthenaPalette.entries.forEach { palette ->
                             FilterChip(
                                 selected = appearance.paletteName == palette.name ||
-                                    (appearance.paletteName == null && palette == AthenaPalette.Violet),
+                                    (appearance.paletteName == null && palette == AthenaPalette.Sage),
                                 onClick = { onPalette(palette) },
                                 enabled = !appearance.dynamicColor || Build.VERSION.SDK_INT < Build.VERSION_CODES.S,
                                 leadingIcon = {
@@ -150,7 +149,7 @@ internal fun SettingsSheet(
             SettingsHeading("管理与工具")
             Surface(
                 Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = AthenaShapes.card,
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 tonalElevation = 0.dp,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
