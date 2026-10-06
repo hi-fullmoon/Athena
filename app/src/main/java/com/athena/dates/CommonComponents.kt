@@ -90,20 +90,12 @@ fun AthenaHeader(section: MainSection, today: LocalDate, onSettings: () -> Unit)
     ) {
         Column(Modifier.weight(1f)) {
             Text(section.label, style = MaterialTheme.typography.headlineMedium)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "ATHENA",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                )
-                Text(
-                    "  ·  ${today.format(DateTimeFormatter.ofPattern("M 月 d 日 EEEE", Locale.CHINA))}",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
+            Text(
+                today.format(DateTimeFormatter.ofPattern("M 月 d 日 · EEEE", Locale.CHINA)),
+                Modifier.padding(top = 6.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
         IconButton(onClick = onSettings, modifier = Modifier.size(48.dp).clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceContainerLow)) {
